@@ -1,0 +1,21 @@
+To set this up so git won't check in images:
+
+1) Add the following to ~/.gitconfig and change the path to your bin:
+
+
+[filter "nbstrip"]        
+      clean = /Users/phil/bin/nbstripout.py
+      smudge =cat
+      required
+
+2) copy nbstripout.py into your bin and make it executable
+
+3) make sure .gitattributes is in the notebooks directory and
+  that it has 
+
+  *.ipynb filter=nbstrip
+
+as it's only line.
+
+
+

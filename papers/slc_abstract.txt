@@ -1,0 +1,43 @@
+
+10.1175/JAS-D-14-0332.1
+
+@ARTICLE{Zhu15,
+author = {Zhu, Ping},
+title = {On the Mass-Flux Representation of Vertical Transport in Moist Convection},
+journal = {J. Atmos. Sci.},
+volume = {72},
+issue = {12},
+year = {2015},
+pages = {4445-4468},
+doi = {10.1175/JAS-D-14-0332.1},
+resource = {http://ezproxy.library.ubc.ca/login?url=http://journals.ametsoc.org/doi/abs/10.1175/JAS-D-14-0332.1},
+wos = {http://ws.isiknowledge.com/cps/openurl/service?url_ver=Z39.88-2004&rft_id=info:doi/10.1175/JAS-D-14-0332.1},
+citing = {http://ws.isiknowledge.com/cps/openurl/service?url_ver=Z39.88-2004&rft_id=info%3Adoi%2F10.1175/JAS-D-14-0332.1&svc_val_fmt=info%3Aofi%2Ffmt%3Akev%3Amtx%3Asch_svc&svc.citing=yes},
+related = {http://ws.isiknowledge.com/cps/openurl/service?url_ver=Z39.88-2004&rft_id=info%3Adoi%2F10.1175/JAS-D-14-0332.1&svc_val_fmt=info%3Aofi%2Ffmt%3Akev%3Amtx%3Asch_svc&svc.related=yes},
+}
+
+@ARTICLE{Kuang06,
+author = {Kuang, Zhiming and Bretherton, Christopher S.},
+title = {A Mass-Flux Scheme View of a High-Resolution Simulation of a Transition from Shallow to Deep Cumulus Convection},
+journal = {J. Atmos. Sci.},
+volume = {63},
+issue = {7},
+year = {2006},
+pages = {1895-1909},
+doi = {10.1175/JAS3723.1},
+resource = {http://ezproxy.library.ubc.ca/login?url=http://journals.ametsoc.org/doi/abs/10.1175/JAS3723.1},
+wos = {http://ws.isiknowledge.com/cps/openurl/service?url_ver=Z39.88-2004&rft_id=info:doi/10.1175/JAS3723.1},
+citing = {http://ws.isiknowledge.com/cps/openurl/service?url_ver=Z39.88-2004&rft_id=info%3Adoi%2F10.1175/JAS3723.1&svc_val_fmt=info%3Aofi%2Ffmt%3Akev%3Amtx%3Asch_svc&svc.citing=yes},
+related = {http://ws.isiknowledge.com/cps/openurl/service?url_ver=Z39.88-2004&rft_id=info%3Adoi%2F10.1175/JAS3723.1&svc_val_fmt=info%3Aofi%2Ffmt%3Akev%3Amtx%3Asch_svc&svc.related=yes},
+}
+
+
+
+A technique to directly calculate the individual cloud entrainment and detrainment rates is used in a large-eddy simulation of deep tropical convection based forcings measured during the GATE (GARP Atlantic Tropical Experiment) Phase III field program. The model run covers an area of 86.4 km x 86.4 km and uses 1728 x 1728 x 512 grid points with 50 m grid spacing. The simulation reaches a state of quasi-equilibrium in 9 hours, and the next three hours of the simulation were used for the analysis. We analyze the directly measured cloud mass entrainment and detrainment rates of the individually tracked shallow and deep clouds for a range of cloud size distributions. The study presents a realistic model of the shallow and deep convective clouds using a high-resolution large-eddy simulation, and compares the usual bulk entrainment rate, calculated using budgets for conserved thermodynamic parameters, to the total entrainment rate, calculated by summing the directly measured entrainment rates of the  individual clouds. A number of current entrainment parameterization schemes use mean cloud properties such as the cloud radius and height to parameterize the bulk entrainment rate, we interpret these relationships using our new joint distribution of cloud size and individual cloud entrainment rates.
+
+1) in-cloud variation of entrainment rate and vertical transport  --  w, hm, cloud area, relative humidity, precipitation, cold pools
+
+2) relates to entrainment -- bulk and resolved  
+
+zhang et al.
+

@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset=utf-8 />
+<meta name="description" content="description">
+<title>{{ captions['title'] }}</title>
+<link rel="stylesheet" media="screen" href="https://www.dropbox.com/s/qhsl3rruey46bop/gallery.css?dl=0" />
+<link href='http://fonts.googleapis.com/css?family=Yanone+Kaffeesatz' rel='stylesheet' type='text/css'>
+ 
+</head>
+ 
+<body>
+
+<div class="header">
+  <h1>{{ captions['description'] }}</h1>
+</div>
+
+    <div class="container">
+      {% for figure in captions['figlist'] %}
+
+                <div class="galleryItem">
+                        <a href="{{figure['plotfile']}}"><img src="thumbs/{{figure['plotfile']}}" alt="figure" /></a>
+                        <h3>{{figure['plotfile']}}</h3>
+                        <p>{{figure['caption']}}</p>
+                </div>
+		{% endfor %}
+    </div>
+     
+</body>
+</html>

@@ -25,7 +25,7 @@ def make_profile(z_indexes, y_indexes, x_indexes,
 
 
 def index_to_zyx(index):
-    ny, nx = 300, 1728
+    ny, nx = 600, 1728
     z = index // (ny*nx)
     index = index % (ny*nx)
     y = index // nx
@@ -69,7 +69,7 @@ def create_savefile(t, data, variables, profile_name):
 
     vars = {}
     for name in variables:
-        vars[name] = savefile.createVariable(name, 'd', ('ids', 'z'), zlib = True)
+        vars[name] = savefile.createVariable(name, 'd', ('ids', 'z'))
         
     return savefile, vars
 
@@ -80,20 +80,20 @@ def main(clouds):
           'TABS': var_calcs.tabs,
           'QN': var_calcs.qn,
           'QV': var_calcs.qv,
-          # 'QT': var_calcs.qt,
-          # 'U': var_calcs.u,
-          # 'V': var_calcs.v,
+          'QT': var_calcs.qt,
+          'U': var_calcs.u,
+          'V': var_calcs.v,
           'W': var_calcs.w,
           'THETAV': var_calcs.thetav,
           'THETAV_LAPSE': var_calcs.thetav_lapse,
-          # 'THETAL': var_calcs.thetal,
+          'THETAL': var_calcs.thetal,
           'MSE': var_calcs.mse,
           'RHO': var_calcs.rho,
           'PRES': var_calcs.press,
           # 'WQREYN': var_calcs.wqreyn,
           'WWREYN': var_calcs.wwreyn,
           'DWDZ': var_calcs.dw_dz,
-          # 'DPDZ': var_calcs.dp_dz,
+          'DPDZ': var_calcs.dp_dz,
           # 'TR01': var_calcs.tr01, # NOTE: do not use tracers
     }
 
@@ -104,7 +104,7 @@ def main(clouds):
     cloud_types = ('core', 'condensed')
 
     with nc('%s/GATE_1920x1920x512_50m_1s_ent_stat.nc' % GATE) as stat_file:
-        rho = stat_file.variables['RHO'][540:,:320].astype(np.float_)
+        rho = stat_file.variables['RHO'][539:,:320].astype(np.float_)
 
     data_files = glob.glob('%s/%s/*.nc' % (GATE, 'variables'))
     data_files.sort()
@@ -122,7 +122,7 @@ def main(clouds):
             'RHO' : rho[n, :], 'ids': np.array(ids),
             }
 
-        for name in ('QV', 'TABS', 'PP', 'W'):
+        for name in  ('QV', 'QN', 'QI', 'TABS', 'PP', 'U', 'V', 'W'):
             # Note: Be careful when handling sub-domain
             print('\t Reading...%s                            ' % name, end='\r')
             data[name] = nc_file.variables[name][:, 300:900, :].astype(np.float_)
@@ -148,7 +148,6 @@ def main(clouds):
         for savefile in savefiles.values():
             savefile.close()
 
-        break
     print('')
 
 if __name__ == '__main__':
@@ -156,4 +155,4 @@ if __name__ == '__main__':
     clouds = glob.glob("%s/clouds_*.h5" % cloudtracker)
     clouds.sort()
 
-    main(clouds[:30]) # First 30 minutes
+    main(clouds) # First 60 minutes

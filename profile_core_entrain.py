@@ -12,9 +12,7 @@ HDF5 = '/newtera/loh/workspace/cloudtracker/cloudtracker/hdf5'
 def make_profile(z_indexes, y_indexes, x_indexes,
                  data, variables, profiles):
 
-    print(variables, profiles)
-
-    z = numpy.unique(z_indexes)
+    z = np.unique(z_indexes)
     for k in z:
         mask = (z_indexes == k)
         if mask.sum() == 0: continue
@@ -27,30 +25,30 @@ def make_profile(z_indexes, y_indexes, x_indexes,
 
 
 def index_to_zyx(index):
-    ny, nx = mc.ny, mc.nx
+    ny, nx = 600, 1728
     z = index // (ny*nx)
     index = index % (ny*nx)
     y = index // nx
     x = index % nx
-    return numpy.array((z, y, x))
+    return np.array((z, y, x))
 
 
-def make_profiles(profiles, cloud_data, variables, data, n):
-    for item in ('core', 'condensed'):
-        var = profiles[item]
+def make_profiles(profiles, cloud_data, var_list, data, n):
+    for item in ('core_entrain',):
+        variables = profiles[item]
                 
         temp_profile = {}
-        for name in variables:
-            temp_profile[name] = np.ones_like(data['z'][:])*numpy.NaN
+        for name in var_list:
+            temp_profile[name] = np.ones_like(data['z'][:])*np.NaN
 
         indexes = cloud_data[item]
         if len(indexes) > 0:
             z, y, x = index_to_zyx(indexes)            
-            results = make_profile(z, y, x, data, variables, temp_profile)
+            results = make_profile(z, y, x, data, var_list, temp_profile)
         else:
             results = temp_profile       
                                                
-        for name in variables:
+        for name in var_list:
             variables[name][n, :] = results[name]
 
 
@@ -69,11 +67,11 @@ def create_savefile(t, data, variables, profile_name):
     zsavevar = savefile.createVariable('z', 'd', ('z',))
     zsavevar[:] = z[:]
 
-    # variables = {}
+    vars = {}
     for name in variables:
-        variables[name] = savefile.createVariable(name, 'd', ('ids', 'z'))
+        vars[name] = savefile.createVariable(name, 'd', ('ids', 'z'))
         
-    return savefile, variables
+    return savefile, vars
 
 
 def main(clouds):
@@ -87,18 +85,14 @@ def main(clouds):
           # 'DTTETCOR': var_calcs.dttetcor,
           # 'EWTETCOR': var_calcs.ewtetcor,
           # 'DWTETCOR': var_calcs.dwtetcor,
-          # 'VTETCOR': var_calcs.vtetcor,
+          'VTETCOR': var_calcs.vtetcor,
           'MFTETCOR': var_calcs.mftetcor,
     }
 
-    # cloud_types = ('condensed', 'condensed_shell', 
-    #              'condensed_edge', 'condensed_env',
-    #              'core', 'core_shell', 
-    #              'core_edge', 'core_env', 'plume')
-    cloud_types = ('core', 'condensed')
+    cloud_types = ('core_entrain',)
 
     with nc('%s/GATE_1920x1920x512_50m_1s_ent_stat.nc' % GATE) as stat_file:
-        rho = stat_file.variables['RHO'][540:,:320].astype(np.float_)
+        rho = stat_file.variables['RHO'][539:,:320].astype(np.float_)
 
     data_files = glob.glob('%s/%s/*.nc' % (GATE, 'core'))
     data_files.sort()
@@ -116,7 +110,12 @@ def main(clouds):
             'RHO' : rho[n, :], 'ids': np.array(ids),
             }
 
-        for name in ('QV', 'TABS', 'PP', 'W'):
+        for name in ('DWDT',
+                 'ETETCOR', 'DTETCOR',
+                 # 'EQTETCOR', 'DQTETCOR',
+                 # 'ETTETCOR', 'DTTETCOR',
+                 # 'EWTETCOR', 'DWTETCOR',
+                 'VTETCOR', 'MFTETCOR'):
             # Note: Be careful when handling sub-domain
             print('\t Reading...%s                            ' % name, end='\r')
             data[name] = nc_file.variables[name][:, 300:900, :].astype(np.float_)
@@ -134,7 +133,10 @@ def main(clouds):
             # Select the current cloud id
             #cloud = clouds[id]
             for item in cloud_types:
-              cloud[item] = cloud_file['%s/%s' % (str(id), item)][...]
+                cloud[item] = np.hstack([
+                        cloud_file['%s/%s' % (str(id), 'core')][...],
+                        cloud_file['%s/%s' % (str(id), 'core_shell')]
+                        ])
 
             make_profiles(profiles, cloud, variables, data, n)
 
@@ -142,7 +144,6 @@ def main(clouds):
         for savefile in savefiles.values():
             savefile.close()
 
-        break
     print('')
 
 if __name__ == '__main__':
@@ -150,4 +151,4 @@ if __name__ == '__main__':
     clouds = glob.glob("%s/clouds_*.h5" % cloudtracker)
     clouds.sort()
 
-    main(clouds[:30]) # First 30 minutes
+    main(clouds) # First 60 minutes

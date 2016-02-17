@@ -44,28 +44,28 @@ def tr01(data, k, j, i):
     return data['TR01'][k, j, i].mean()
 
 def w(data, k, j, i):
-    kk = min(k+1, (50.-1))
+    kk = min(k+1, (320.-1))
     return (data['W'][k, j, i] + data['W'][kk, j, i]).mean()/2.
 
 def dw_dz(data, k, j, i):
-    kk = min(k+1, (50.-1))
+    kk = min(k+1, (320.-1))
     return (data['W'][kk, j, i].mean() - data['W'][k, j, i].mean())/50.
 
 def wqreyn(data, k, j, i):
-    kk = min(k+1, (50.-1))
+    kk = min(k+1, (320.-1))
     w = (data['W'][k, j, i] + data['W'][kk, j, i])/2.
     q = (data['QV'][k, j, i] + data['QN'][k, j ,i])
     wq_reyn = (w*q - w.mean()*q.mean())
     return wq_reyn.mean()
 
 def wwreyn(data, k, j, i):
-    kk = min(k+1, (50.-1))
+    kk = min(k+1, (320.-1))
     w = (data['W'][k, j, i] + data['W'][kk, j, i])/2.
     ww_reyn = (w*w - w.mean()**2)
     return ww_reyn.mean()
 
 def dp_dz(data, k, j, i):
-    kplus = min(k+1, (50.-1))
+    kplus = min(k+1, (320.-1))
     kminus = max(k-1, 0)
     return (data['PP'][kplus, j, i] - data['PP'][kminus, j, i]).mean()/2/50.
 
@@ -87,6 +87,16 @@ def moist_adiabatic_lapse_rate(T, qv):
     return g*(1 + Lv*qv/Rd/T)/(cp + Lv*Lv*qv*epsilon/Rd/T/T)
 
 # TODO: Redo the calculations for GATE sounding
+
+def esatw(T):
+    T = np.atleast_1d(T)
+    # Saturation vapor [Pa]
+    a = (6.11239921, 0.443987641, 0.142986287e-1, 0.264847430e-3, 0.302950461e-5,
+         0.206739458e-7, 0.640689451e-10, -0.952447341e-13, -0.976195544e-15)
+    dT = T-273.16
+    dT[dT<-80.] = -80.
+    return (a[0] + dT*(a[1] + dT*(a[2] + dT*(a[3] + dT*(a[4] + dT*(a[5] + dT*(a[6] + dT*(a[7] + dT*a[8]))))))))*100.
+    
 def dtesatw(T):
     T = np.atleast_1d(T)
     a = (0.443956472, 0.285976452e-1, 0.794747212e-3, 0.121167162e-4, 0.103167413e-6,
@@ -128,7 +138,8 @@ def h(T, z, qn, qi):
 def mse(data, k, j, i):
     return h(data['TABS'][k, j, i],
                  data['z'][k, np.newaxis, np.newaxis],
-                 data['QN'][k, j, i]/1000., 0.).mean()
+                 data['QN'][k, j, i]/1000.,
+                 data['QI'][k, j, i]/1000.).mean()
 
 def rho(data, k, j, i):
     return data['RHO'][k]

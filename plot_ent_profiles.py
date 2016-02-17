@@ -10,19 +10,27 @@ import seaborn as sns
 
 def main(var):
     print(var)
-    cloud_type = 'core'
+    cloud_type = 'core_entrain'
 
     time_profiles = 'cdf'
     x_data = []
     y_data = []
-    for n in range(0, 180, 60):
+    for n in range(0, 180, 5):
         # print('%s/%s_profile_%08d.nc' % (time_profiles, cloud_type, n))
         nc_file = nc('%s/%s_profile_%08d.nc' % (time_profiles, cloud_type, n))
-        
+
         x = nc_file.variables[var][:].astype(np.float_)
         y = np.ones_like(x) * nc_file.variables['z'][:].astype(np.float_) / 1.e3
 
         mask = ~(np.isnan(x) | np.isinf(x))
+        
+        # Shallow filter
+        # if (var == 'ETETCOR') | (var == 'DTETCOR'):
+        #     mask = mask & (x < 800)
+        # elif var == 'VTETCOR':
+        #     mask = mask & (x < 100000)
+        # elif var == 'MFTETCOR':
+        #     mask = mask & (x < 200000)
 
         x_data += [x[mask]]
         y_data += [y[mask]]
@@ -56,7 +64,12 @@ def main(var):
         bbox_inches='tight', dpi=300, facecolor='w', transparent=True)
 
 if __name__ == '__main__':
-    for var in ('AREA', 'TABS', 'QN', 'QV', 'QT', 'U', 'V', 'W', 'THETAV', 'THETAV_LAPSE', \
-        'THETAL', 'MSE', 'RHO', 'PRES', 'WWREYN', 'DWDZ', 'DPDZ',):
+    for var in (
+        'DWDT',
+        'ETETCOR',
+        'DTETCOR',
+        'VTETCOR',
+        'MFTETCOR',
+        ):
         main(var)
     

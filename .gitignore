@@ -1,13 +1,15 @@
+# Binary data files
 *.nc
 *.pkl
 *.h5
 *.npy
+
 *.pbs
 *.lprof
 *.txt
 
-/data
-/npy
+# Plots
+*.png
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

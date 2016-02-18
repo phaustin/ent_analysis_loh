@@ -3,13 +3,11 @@
 *.pkl
 *.h5
 *.npy
+*.png
 
 *.pbs
 *.lprof
 *.txt
-
-# Plots
-*.png
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

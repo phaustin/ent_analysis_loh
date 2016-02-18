@@ -8,11 +8,11 @@ import h5py
 
 import seaborn as sns
 
-def plot_profiles_main(var, cloud_type):
+def plot_profiles_ent(var, cloud_type):
     """
-    Read time_profiles data and plot the vertical profiles of the cloud 
-    properties, for different types of cloud regions (core, core_entrain 
-    and condensed_entrain). 
+    Read time_profiles_ent data and plot the vertical profiles of the 
+    entrainment properties, for different types of cloud regions (core, 
+    core_entrain and condensed_entrain). 
 
     Parameters
     ----------
@@ -28,7 +28,8 @@ def plot_profiles_main(var, cloud_type):
 
     Notes
     ----------
-    For entrainment-related variables, see plot_profiles_ent.py
+    For cloud core/condensed region statistics variables, see
+    plot_profiles.py 
     """
 
     print(var)
@@ -36,14 +37,22 @@ def plot_profiles_main(var, cloud_type):
     time_profiles = '/tera/users/loh/repos/ent_analysis/cdf'
     x_data = []
     y_data = []
-    for n in range(0, 180, 60):
+    for n in range(0, 180, 5):
         # print('%s/%s_profile_%08d.nc' % (time_profiles, cloud_type, n))
         nc_file = nc('%s/%s_profile_%08d.nc' % (time_profiles, cloud_type, n))
-        
+
         x = nc_file.variables[var][:].astype(np.float_)
         y = np.ones_like(x) * nc_file.variables['z'][:].astype(np.float_) / 1.e3
 
         mask = ~(np.isnan(x) | np.isinf(x))
+        
+        # Shallow filter
+        if (var == 'ETETCOR') | (var == 'DTETCOR'):
+            mask = mask & (x < 800)
+        elif var == 'VTETCOR':
+            mask = mask & (x < 100000)
+        elif var == 'MFTETCOR':
+            mask = mask & (x < 200000)
 
         x_data += [x[mask]]
         y_data += [y[mask]]
@@ -55,7 +64,7 @@ def plot_profiles_main(var, cloud_type):
     cmap = sns.cubehelix_palette(8, start=0.5, light=1, rot=-.75, \
         gamma = 1.5, as_cmap=True)
     H, xi, yi = np.histogram2d(x[mask], y[mask], bins=35, normed=False)
-    plt.pcolormesh(xi, yi, np.log10(H.T)+1e-10, vmin=.1, vmax=3,  \
+    plt.pcolormesh(xi, yi, np.log10(H.T)+1e-10, vmin=.1, vmax=3, \
         cmap=cmap, alpha=.8, edgecolor='0.9', linewidths = (.2,),)
     
     plt.colorbar()
@@ -78,27 +87,15 @@ def plot_profiles_main(var, cloud_type):
         bbox_inches='tight', dpi=300, facecolor='w', transparent=True)
 
 if __name__ == '__main__':
-    cloud_type = 'core'
+    cloud_type = 'core_entrain'
 
     for var in (
-        'AREA', 
-        'TABS', 
-        'QN', 
-        'QV', 
-        'QT', 
-        'U', 
-        'V', 
-        'W', 
-        'THETAV',
-        'THETAV_LAPSE', 
-        'THETAL', 
-        'MSE', 
-        'RHO', 
-        'PRES', 
-        'WWREYN', 
-        'DWDZ', 
-        'DPDZ',
+        'DWDT',
+        'ETETCOR',
+        'DTETCOR',
+        'VTETCOR',
+        'MFTETCOR',
         ):
 
-        plot_profiles_main(var, cloud_type)
+        plot_profiles_ent(var, cloud_type)
     

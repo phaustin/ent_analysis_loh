@@ -19,7 +19,7 @@ def plot_profiles_ent(var, cloud_type):
     var: String
         Type of cloud profile
 
-    cloud_type: string
+    cloud_type: String
         Type of cloud region (core, core_entrain, condensed_entrain)
 
     Returns

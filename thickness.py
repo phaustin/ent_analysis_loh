@@ -8,7 +8,7 @@ import h5py
 import seaborn as sns
 
 def index_to_zyx(index):
-    ny, nx = 300, 1728
+    ny, nx = 600, 1728
     z = index // (ny*nx)
     index = index % (ny*nx)
     y = index // nx

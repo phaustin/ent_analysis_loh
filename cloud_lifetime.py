@@ -1,55 +1,54 @@
-import matplotlib.pyplot as plt
 import numpy as np
+
+from netCDF4 import Dataset as nc
+import matplotlib.pyplot as plt
 
 import sys, glob
 import h5py
 
 import seaborn as sns
 
-def index_to_zyx(index):
-    ny, nx = 300, 1728
-    z = index // (ny*nx)
-    index = index % (ny*nx)
-    y = index // nx
-    x = index % nx
-    return (z, y, x)
-
-def get_lifetime():
-    file_list = glob.glob("../cloudtracker/cloudtracker/hdf5/h5/clouds_*.h5")
-    file_list.sort()
-    
-    clouds = np.zeros(8000)
-    for i in range(50):
-        file = h5py.File(file_list[i])
-        keys = list(file.keys())
-        keys.sort()
-
-        for key in keys:
-            try:
-                clouds[int(key)] += 1
-            except:
-                print(key, " error")
-            
-    np.save('npy/cloud_lifetime.npy', clouds)
-
-def plot_lifetime():
-    cloud_lifetime = np.load('npy/cloud_lifetime.npy')
-
-    cloud_lifetime, x = np.histogram(cloud_lifetime, bins=15, range=(1, 15), normed=False)
-    print(cloud_lifetime)
-
-    sns.set(rc={"figure.figsize": (4, 3)})
-    # ax = sns.distplot(tracked_h)
-    plt.plot(cloud_lifetime)
-    plt.title("Cloud core lifetime")
-    plt.xlabel("Lifetime (min)")
-    plt.ylabel("# Cloud cores")
-    # plt.show()
-
-    plt.savefig('%s.png' % ('output'), bbox_inches='tight', dpi=300, \
-        facecolor='w', transparent=True)
-
 if __name__ == '__main__':
-    get_lifetime()
-    plot_lifetime()
+    id_list = list(range(180))
+
+    cloud_lifetime = {}
+    nn = 0
+    for n in range(0, 180, 1):
+        nc_file = nc('%s/%s_profile_%08d.nc' % ('cdf', 'core', n))
+        id_list[nn] = list(nc_file.variables['ids'][:].astype(np.int))
+
+        nn += 1
+
+    for t, n in enumerate(id_list):
+        for id in n:
+            if id == -1: continue
+            if str(id) in cloud_lifetime:
+                cloud_lifetime[str(id)] += [t]
+            else:
+                cloud_lifetime[str(id)] = [t]
+
+    cloud_l = []
+    for item in cloud_lifetime:
+        if len(cloud_lifetime[item]) < 2: continue
+        cloud_l += [len(cloud_lifetime[item])]
+
+    # l = 0
+    # for item in cloud_lifetime:
+    #     if len(cloud_lifetime[item]) > 10:
+    #         print(item, cloud_lifetime[item])
+    #         l += 1
+    # print("%d clouds" % l)g
+
+    bins = np.linspace(0, 20, 20)
+    cloud_h, x = np.histogram(cloud_l, bins=bins, normed=False)
+
+    bin_x = (x[1:] + x[:-1])/2.
+
+    fig = plt.figure(1, figsize=(5, 3.125))
+    fig.clf()
+    ax = fig.add_subplot(111)
     
+    plt.plot(bin_x, cloud_h)
+
+    plt.savefig('%s.png' % ('output'), \
+        bbox_inches='tight', dpi=300, facecolor='w', transparent=True)

@@ -1,0 +1,10 @@
+ put thist gallery folder in your pythonpath
+
+ to run, cd to folder containg a directory with with png files
+
+ and do:
+
+ python -m make_gallery_index  my_png_folder  my_caption.yaml
+
+ this will generate thumbnails in my_png_folder/thumbs, and a web
+ page my_png_folder/index.html

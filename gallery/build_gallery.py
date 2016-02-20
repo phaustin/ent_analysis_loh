@@ -7,21 +7,16 @@ import os
 import os.path
 from PIL import Image
 import shutil
-from ruamel.ordereddict import ordereddict as OrderedDict
+from collections import OrderedDict
 import glob
 import ruamel.yaml
+import copy
 
 """
+need to do pip install ruamel.yaml
+
 Note if you can't use https://pypi.python.org/pypi/ruamel.yaml  then these suggestions show
 how to get ordered read/write in pyyaml
-
-to install ruamel.yaml on osx  need to
-
-conda create -n py2 python=2.7
-source activate py27
-conda install --channel https://conda.anaconda.org/conda-forge ruamel.ordereddict
-conda install ruamel.yaml
-
 
 #http://stackoverflow.com/questions/5121931/in-python-how-can-you-load-yaml-mappings-as-ordereddicts
 import yaml
@@ -72,7 +67,26 @@ OPTIONS = {
 
 
 def write_default_yaml(png_dir,caption_file = None):
-    print('top')
+    """
+      scan png_dir for files ending in png, and build a nested
+      dictionary with captions and file locations
+      if caption_file exists, write it out as as yaml file
+
+      sample yaml file:
+
+        !!omap
+        - title: big title for header bar
+        - description: general gallery description
+        - figures: !!omap
+          - core_29875: !!omap
+            - figpath: plots/core_29875.png
+            - plotfile: core_29875.png
+            - caption: 'write caption here for : core_29875.png'
+          - core_29908: !!omap
+            - figpath: plots/core_29908.png
+            - plotfile: core_29908.png
+            - caption: 'write caption here for : core_29908.png'
+    """
     pngfiles='{}/*png'.format(png_dir)
     figpaths = glob.glob(pngfiles)
     print('found {} png files in pngfiles'.format(len(figpaths),pngfiles))
@@ -82,11 +96,14 @@ def write_default_yaml(png_dir,caption_file = None):
     yaml_dict = OrderedDict()
     yaml_dict['title']='big title for header bar'
     yaml_dict['description']= 'general gallery description'
+    yaml_dict['png_dir'] = png_dir
     yaml_dict['figures'] = OrderedDict()
     for item in zip(figpaths, plotfiles, captions):
         figpath, plotfile, caption = item
         key, ext = os.path.splitext(plotfile)
-        yaml_dict['figures'][key]= OrderedDict()
+        yaml_dict['figures'][key] = OrderedDict()
+        # figdict=OrderedDict(figpath=figpath_a,plotfile=plotfile_a,caption=caption_a)
+        # yaml_dict['figures'][key]= figdict
         dictpairs=[('figpath',figpath),('plotfile',plotfile),('caption',caption)]
         for innerkey,innervalue in dictpairs:
             print(innerkey,innervalue)
@@ -95,23 +112,39 @@ def write_default_yaml(png_dir,caption_file = None):
         with open(caption_file,'w') as f:
             ruamel.yaml.dump(yaml_dict,f,Dumper=ruamel.yaml.RoundTripDumper,default_flow_style=False)
         print('wrote {}'.format(caption_file))
-        result = None
-    else:
-        result = yaml_dict
-    return result
+    return yaml_dict
 
 
-def generateThumbnails(galleryinfo):
+def generateThumbnails(figure_dict):
     """
       generates thumbnails of a list of figures
       input:
-         galleryinfo:  a dictionary with at least two keys:
-           plotdir:  full path to directory containing png files
-           figlist:  list of dictonaries, each with keys
-              figpath:  full path to figure
-              plotfile:  name of png file
+         figure_dict:  a dictionary with the following nested (yaml) structure
+
+        !!omap
+        - title: big title for header bar
+        - description: general gallery description
+        - png_dir: plots
+        - figures: !!omap
+          - core_29875: !!omap
+            - figpath: plots/core_29875.png
+            - plotfile: core_29875.png
+            - caption: 'write caption here for : core_29875.png'
+          - core_29908: !!omap
+            - figpath: plots/core_29908.png
+            - plotfile: core_29908.png
+            - caption: 'write caption here for : core_29908.png'
+
+       returns:
+         a deepcopy of figure_dict with the new key figlist containing
+         the figures in a list for the jinja2 template generator.
     """
-    thumbdir='{}/thumbs'.format(galleryinfo['plotdir'])
+    galleryinfo = copy.deepcopy(figure_dict)
+    figlist=[]        
+    for key,figure in galleryinfo['figures'].items():        
+        figlist.append(figure)
+    galleryinfo['figlist'] = figlist
+    thumbdir='{}/thumbs'.format(galleryinfo['png_dir'])
     if os.path.exists(thumbdir):
         shutil.rmtree(thumbdir)
         os.mkdir(thumbdir)
@@ -126,7 +159,7 @@ def generateThumbnails(galleryinfo):
         im.thumbnail(OPTIONS['thumbSize'], Image.ANTIALIAS)
         print("processing %s" % fig_dict['plotfile'])
         im.save("{}/{}".format(thumbdir,fig_dict['plotfile']), "PNG")
-    return None
+    return galleryinfo
 
 def path_to_template(template_name):
     """
@@ -139,4 +172,22 @@ def path_to_template(template_name):
     return template
 
 if __name__ == "__main__":
-    write_default_yaml('plots','default.yaml')
+    #
+    # execute in a directory which contains a folder called plots with png files
+    # generate a nested dictionary for all the png files in the plots folder
+    #
+    out=write_default_yaml('plots')
+    #
+    #  write to test.yaml
+    #
+    caption_file ='test.yaml'
+    with open(caption_file,'w') as f:
+        ruamel.yaml.dump(out,f,Dumper=ruamel.yaml.RoundTripDumper,default_flow_style=False)
+    with open(caption_file,'r') as f:
+        input = ruamel.yaml.load(f)
+    print(type(input),input)
+    #
+    # if you don't want to modify nested dictionary you can go straight to the file
+    #
+    figure_dict=write_default_yaml('plots','test2.yaml')
+    

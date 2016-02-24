@@ -3,7 +3,7 @@ import numpy as np
 from netCDF4 import Dataset as nc
 import matplotlib.pyplot as plt
 
-import sys, glob
+import sys, glob, datetime
 import h5py
 
 import seaborn as sns
@@ -100,7 +100,10 @@ def plot_corr(x_var, y_var, cloud_type):
     plt.xlabel('Cloud %s %s' % (cloud_type, x_var))
     plt.ylabel('Cloud %s %s' % (cloud_type, y_var))
 
-    plt.savefig('png/corr_%s_%s.png' % (x_var, y_var), \
+    now = datetime.datetime.utcnow().replace(tzinfo=datetime.timezone.utc).astimezone(tz=None)
+    time_now = now.strftime(('%Y-%m-%d_%H:%M'))
+
+    plt.savefig('plot/%s_corr_%s_%s.png' % (time_now, x_var, y_var), \
         bbox_inches='tight', dpi=300, facecolor='w', transparent=True)
 
 if __name__ == '__main__':

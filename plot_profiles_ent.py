@@ -3,7 +3,7 @@ import numpy as np
 from netCDF4 import Dataset as nc
 import matplotlib.pyplot as plt
 
-import sys, glob
+import sys, glob, datetime
 import h5py
 
 import seaborn as sns
@@ -83,7 +83,10 @@ def plot_profiles_ent(var, cloud_type):
     plt.xlabel(var)
     plt.ylabel("Altitude (km)")
 
-    plt.savefig('plots/%s_%s.png' % (cloud_type, var.lower()), \
+    now = datetime.datetime.utcnow().replace(tzinfo=datetime.timezone.utc).astimezone(tz=None)
+    time_now = now.strftime(('%Y-%m-%d_%H:%M'))
+
+    plt.savefig('plots/%s_%s_%s.png' % (time_now, cloud_type, var.lower()), \
         bbox_inches='tight', dpi=300, facecolor='w', transparent=True)
 
 if __name__ == '__main__':

@@ -34,7 +34,7 @@ def index_to_zyx(index):
 
 
 def make_profiles(profiles, cloud_data, var_list, data, n):
-    for item in ('core_entrain',):
+    for item in ('core', 'condensed'):
         variables = profiles[item]
                 
         temp_profile = {}
@@ -75,26 +75,57 @@ def create_savefile(t, data, variables, profile_name):
 
 
 def main(clouds):
+    """
+    Read the output from the cloud-tracking algorithm and process the SAM
+    output variables for each individual cloud at every model altitude, or
+    in (ids, height). 
+
+    Parameters
+    ----------
+    clouds: list of string
+        List of cloudtracker output: clouds_%08d.py
+
+    Returns
+    ----------
+    Times profiles in ./cdf/ for each type of region (core, core_shell, etc)
+
+    Notes
+    ----------
+    Currently, _edge and _env processing is turned off in cloudtracker
+    """
+
     variables = {
-          'DWDT': var_calcs.dwdt,
-          'ETETCOR': var_calcs.etetcor,
-          'DTETCOR': var_calcs.dtetcor,
-          # 'EQTETCOR': var_calcs.eqtetcor,
-          # 'DQTETCOR': var_calcs.dqtetcor,
-          # 'ETTETCOR': var_calcs.ettetcor,
-          # 'DTTETCOR': var_calcs.dttetcor,
-          # 'EWTETCOR': var_calcs.ewtetcor,
-          # 'DWTETCOR': var_calcs.dwtetcor,
-          'VTETCOR': var_calcs.vtetcor,
-          'MFTETCOR': var_calcs.mftetcor,
+          'AREA': var_calcs.area,
+          'TABS': var_calcs.tabs,
+          'QN': var_calcs.qn,
+          'QV': var_calcs.qv,
+          'QT': var_calcs.qt,
+          'U': var_calcs.u,
+          'V': var_calcs.v,
+          'W': var_calcs.w,
+          'THETAV': var_calcs.thetav,
+          'THETAV_LAPSE': var_calcs.thetav_lapse,
+          'THETAL': var_calcs.thetal,
+          'MSE': var_calcs.mse,
+          'RHO': var_calcs.rho,
+          'PRES': var_calcs.press,
+          # 'WQREYN': var_calcs.wqreyn,
+          'WWREYN': var_calcs.wwreyn,
+          'DWDZ': var_calcs.dw_dz,
+          'DPDZ': var_calcs.dp_dz,
+          # 'TR01': var_calcs.tr01, # NOTE: do not use tracers
     }
 
-    cloud_types = ('core_entrain',)
+    # cloud_types = ('condensed', 'condensed_shell', 
+    #              'condensed_edge', 'condensed_env',
+    #              'core', 'core_shell', 
+    #              'core_edge', 'core_env', 'plume')
+    cloud_types = ('core', 'core_shell', 'condensed', 'condensed_shell')
 
     with nc('%s/GATE_1920x1920x512_50m_1s_ent_stat.nc' % GATE) as stat_file:
         rho = stat_file.variables['RHO'][539:,:320].astype(np.float_)
 
-    data_files = glob.glob('%s/%s/*.nc' % (GATE, 'core'))
+    data_files = glob.glob('%s/%s/*.nc' % (GATE, 'variables'))
     data_files.sort()
 
     for n, cloud in enumerate(clouds):
@@ -110,12 +141,7 @@ def main(clouds):
             'RHO' : rho[n, :], 'ids': np.array(ids),
             }
 
-        for name in ('DWDT',
-                 'ETETCOR', 'DTETCOR',
-                 # 'EQTETCOR', 'DQTETCOR',
-                 # 'ETTETCOR', 'DTTETCOR',
-                 # 'EWTETCOR', 'DWTETCOR',
-                 'VTETCOR', 'MFTETCOR'):
+        for name in  ('QV', 'QN', 'QI', 'TABS', 'PP', 'U', 'V', 'W'):
             # Note: Be careful when handling sub-domain
             print('\t Reading...%s                            ' % name, end='\r')
             data[name] = nc_file.variables[name][:, 300:900, :].astype(np.float_)
@@ -133,10 +159,7 @@ def main(clouds):
             # Select the current cloud id
             #cloud = clouds[id]
             for item in cloud_types:
-                cloud[item] = np.hstack([
-                        cloud_file['%s/%s' % (str(id), 'core')][...],
-                        cloud_file['%s/%s' % (str(id), 'core_shell')]
-                        ])
+              cloud[item] = cloud_file['%s/%s' % (str(id), item)][...]
 
             make_profiles(profiles, cloud, variables, data, n)
 

@@ -39,8 +39,11 @@ Download ent_analysis package to SAM directory, or where the model output will b
 
 ### Example ###
  To run entrainment analysis toolkit, simple run:```./run_analysis.py```
+ Read time_profiles data (/tera/users/loh/repos/ent_analysis/cdf) and plot the vertical profiles of the clouds. plot_profiles.py produces a series of plots for SAM statistics ("variables") and plot_profiles_ent.py produces profiles from the entrainment codes.
 
 Or, use the MOAB script ```msub run.pbs```
+ The code should run within the git repository.
 
 ### Output ###
 The post-processed output files are in ```/time_profiles/cdf``` and in ```/id_profiles/cdf```. 
+ Currently, the code filters out the deep clouds, due to the fact that the profiles are very distinctly skewed towards them; to turn this off, find the section of code tagged with # Shallow filters and comment it out (it may be worth writing another code just to plot the deep clouds).

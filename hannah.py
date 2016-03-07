@@ -11,6 +11,7 @@ import seaborn as sns
 import numba
 from numba import int64
 
+import var_calcs
 
 # @numba.jit((int64[:], int64, int64, int64), nopython=True, nogil=True)
 def index_to_zyx(index, nz=320, ny=600, nx=1728):
@@ -21,8 +22,12 @@ def index_to_zyx(index, nz=320, ny=600, nx=1728):
     return (z, y, x)
 
 
+def wmean(weight, b, dv):
+    return (np.sum(weight * b * dv)/np.sum(weight * dv))
+
+
 def calc_dilution():
-    dv = 50. **3
+    dv = 50.**3
     dt = 60.
 
     cloudtracker = '/newtera/loh/workspace/cloudtracker/cloudtracker/hdf5/'
@@ -41,7 +46,7 @@ def calc_dilution():
 
     cloud_file = h5py.File(clouds[60])
     ids = list(cloud_file.keys())
-    id = 29875
+    id = 29781
 
     core_points = np.hstack([cloud_file['%s/%s' % (str(id), 'core')][...],
                             cloud_file['%s/%s' % (str(id), 'core_shell')]])
@@ -57,19 +62,35 @@ def calc_dilution():
     # TODO: filter epsilon values based on core definition
     eps_var = ent_file.variables['ETETCOR'][:320, 300:900, :].astype(np.float_)
 
+    data = {'p': var_file.variables['p'][:320].astype(np.float_),
+            'TABS': var_file.variables['TABS'][:320, 300:900, :].astype(np.float_),
+            'QV': var_file.variables['QV'][:320, 300:900, :].astype(np.float_),
+            'QN': var_file.variables['QN'][:320, 300:900, :].astype(np.float_),
+            'QP': var_file.variables['QP'][:320, 300:900, :].astype(np.float_),       
+    }
+    # thetav = var_calcs.theta_v(data['p'], data['TABS'], data['QV'], data['QN'], data['QP'])
     dil = []
     for k in np.unique(K):
         mask = (K == k)
 
-        QN = QN_var[K[mask], J[mask], I[mask]] / 1e3
-        QV = QV_var[K[mask], J[mask], I[mask]] / 1e3
+        eps = eps_var[K[mask], J[mask], I[mask]] * dt
+
+        QN = (data['QN'])[K[mask], J[mask], I[mask]] / 1e3
+        QV = (data['QV'])[K[mask], J[mask], I[mask]] / 1e3
+        # QP = (data['QP'])[K[mask], J[mask], I[mask]] / 1e3
+        
+        # QV = QV_var[K[mask], J[mask], I[mask]] / 1e3
         QT = QN + QV
 
-        eps = eps_var[K[mask], J[mask], I[mask]] * dt * dv
+        QT = QT[(eps > 1e-6) & (eps < 10)]
+        eps = eps[(eps > 1e-6) & (eps < 10)]
 
-        dil_e = (eps.sum()/((rho[0, k] + eps).sum())) * (QT.mean() - QT.sum())/(QT.mean() * dt)
-        print(eps.sum(), QT.mean())
-        dil += [dil_e * (-60.)]
+        var_mean = wmean(rho[60, k], QT, dv)
+
+        dil_e = np.sum(eps * dv)/np.sum((rho[60, k] + eps) * dv) \
+                * (var_mean - wmean(eps, QT, dv))/var_mean/2
+
+        dil += [dil_e * 60]
 
     print(dil)
 

@@ -36,8 +36,10 @@ def tracking_snapshot():
         core = []
         core_list = []
         for id in keys[:]:
-            K, J, I = np.array(index_to_zyx(f['%s/condensed' % id][...]), dtype=int) 
-            mask = (K >= 20) & (K <= 40)
+            core_points = np.hstack([f['%s/%s' % (str(id), 'core')][...],])
+                                    # f['%s/%s' % (str(id), 'core_shell')]])
+            K, J, I = np.array(index_to_zyx(core_points), dtype=int) 
+            mask = (K >= 20) & (K <= 22)
             mask = mask & ((len(K) + len(J) + len(I)) > 24)
             core.append((J[mask], I[mask]))
 
@@ -54,13 +56,18 @@ def tracking_snapshot():
         line_color = '#%02x%02x%02x' % (int(line_color[0]*255), int(line_color[1]*255), int(line_color[2]*255))
         plt.contour(x, y, temp_mesh, levels=[0], colors=line_color, linewidths = (.4,),)
 
-    # levs = np.linspace(1e-7, 2e-2, 11)
-    # levs = array((1e-7, 1e-3, 5e-3, 1e-2, 2e-2))
-    # cols = np.linspace(.8,0,5)
-    # cols = [str(item) for item in cols]
+    core_file = '/newtera/loh/data/GATE/core/GATE_CORE_ENTRAIN_1920x1920x512_50m_1s_ent_comp_0000032400.nc'
+    with nc(core_file, 'r') as f:
+        eps = f.variables['ETETCOR'][20:22, 300:900, :]
+        eps = np.nanmean(eps, axis=0)
+
+    levs = np.linspace(1e-7, 2e-2, 11)
+    levs = np.array((1e-7, 1e-3, 5e-3, 1e-2, 2e-2))
+    cols = np.linspace(.8,0,5)
+    cols = [str(item) for item in cols]
     
-    # plt.contourf(x, y, eps, levels=levs, colors=cols)
-    # plt.colorbar()
+    plt.contourf(x, y, eps, levels=levs, colors=cols)
+    plt.colorbar()
 
     plt.title('Cloud snapshot between 1-2 km')
     plt.ylabel('y (km)')

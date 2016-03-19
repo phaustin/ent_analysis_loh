@@ -28,6 +28,8 @@ def plot_profiles_main(var, cloud_type):
 
     Notes
     ----------
+    This script requires data generated from profile_main.py
+
     For entrainment-related variables, see plot_profiles_ent.py
     """
 

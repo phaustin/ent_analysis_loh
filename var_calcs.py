@@ -81,7 +81,7 @@ def thetav(data, k, j, i):
     return theta_v(data['p'][k, np.newaxis, np.newaxis]*100., 
                        data['TABS'][k, j, i], 
                        data['QV'][k, j, i]/1000., 
-                       data['QN'][k, j, i]/1000., 0.).mean()
+                       data['QN'][k, j, i]/1000., 0.)
 
 def moist_adiabatic_lapse_rate(T, qv):
     return g*(1 + Lv*qv/Rd/T)/(cp + Lv*Lv*qv*epsilon/Rd/T/T)

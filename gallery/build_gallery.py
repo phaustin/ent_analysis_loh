@@ -184,7 +184,7 @@ if __name__ == "__main__":
     with open(caption_file,'w') as f:
         ruamel.yaml.dump(out,f,Dumper=ruamel.yaml.RoundTripDumper,default_flow_style=False)
     with open(caption_file,'r') as f:
-        input = ruamel.yaml.load(f)
+        input = ruamel.yaml.load(f,Loader=ruamel.yaml.RoundTripLoader)
     print(type(input),input)
     #
     # if you don't want to modify nested dictionary you can go straight to the file
